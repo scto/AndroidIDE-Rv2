@@ -96,6 +96,7 @@ fun Project.configureAndroidModule(
 
   extensions.getByType(BaseExtension::class.java).run {
     compileSdkVersion(BuildConfig.compileSdk)
+    buildToolsVersion = BuildConfig.buildToolsVersion
 
     defaultConfig {
       minSdk = BuildConfig.minSdk

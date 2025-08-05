@@ -29,6 +29,9 @@ object BuildConfig {
 
   /** The compile SDK version. */
   const val compileSdk = 34
+  
+  /** The build tools version. */
+  const val buildToolsVersion = "34.0.4"
 
   /** The minimum SDK version. */
   const val minSdk = 26
