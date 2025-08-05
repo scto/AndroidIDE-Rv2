@@ -21,7 +21,6 @@ import com.itsaky.androidide.plugins.NoDesugarPlugin
 @Suppress("JavaPluginLanguageLevel")
 plugins {
     id("java-library")
-    id("com.vanniktech.maven.publish.base")
 }
 
 apply {

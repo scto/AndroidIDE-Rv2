@@ -23,7 +23,6 @@ import com.itsaky.androidide.build.config.ProjectConfig
 plugins {
   id("java-gradle-plugin")
   id("org.jetbrains.kotlin.jvm")
-  id("com.vanniktech.maven.publish.base")
 }
 
 

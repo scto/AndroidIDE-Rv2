@@ -18,11 +18,9 @@
 @file:Suppress("UnstableApiUsage")
 
 import com.itsaky.androidide.build.config.BuildConfig
-import com.itsaky.androidide.build.config.publishingVersion
 import com.itsaky.androidide.plugins.AndroidIDEPlugin
 import com.itsaky.androidide.plugins.conf.configureAndroidModule
 import com.itsaky.androidide.plugins.conf.configureJavaModule
-import com.itsaky.androidide.plugins.conf.configureMavenPublish
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -31,8 +29,6 @@ plugins {
   alias(libs.plugins.android.library) apply false
   alias(libs.plugins.kotlin.android) apply false
   alias(libs.plugins.kotlin.jvm) apply false
-  alias(libs.plugins.maven.publish) apply false
-  alias(libs.plugins.gradle.publish) apply false
   alias(libs.plugins.protobuf) apply false
   alias(libs.plugins.benchmark) apply false
 }
@@ -69,13 +65,6 @@ subprojects {
     configureAndroidModule(libs.androidx.libDesugaring)
   }
   plugins.withId("java-library") { configureJavaModule() }
-  plugins.withId("com.vanniktech.maven.publish.base") { configureMavenPublish() }
-
-  plugins.withId("com.gradle.plugin-publish") {
-    configure<GradlePluginDevelopmentExtension> {
-      version = project.publishingVersion
-    }
-  }
 
   tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {

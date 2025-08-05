@@ -22,7 +22,6 @@ import com.itsaky.androidide.build.config.BuildConfig
 import com.itsaky.androidide.build.config.ProjectConfig
 import com.itsaky.androidide.build.config.VersionUtils
 import com.itsaky.androidide.build.config.downloadVersion
-import com.itsaky.androidide.build.config.publishingVersion
 import com.itsaky.androidide.build.config.replaceContents
 import com.itsaky.androidide.build.config.simpleVersionName
 import org.jetbrains.kotlin.incremental.createDirectory
@@ -30,7 +29,6 @@ import org.jetbrains.kotlin.incremental.createDirectory
 plugins {
   //noinspection JavaPluginLanguageLevel
   id("java-library")
-  id("com.vanniktech.maven.publish.base")
 }
 
 description = "Information about the AndroidIDE build"
@@ -56,7 +54,6 @@ tasks.create("generateBuildInfo") {
 
         "VERSION_NAME" to rootProject.version.toString(),
         "VERSION_NAME_SIMPLE" to rootProject.simpleVersionName,
-        "VERSION_NAME_PUBLISHING" to rootProject.publishingVersion,
         "VERSION_NAME_DOWNLOAD" to rootProject.downloadVersion,
 
         "REPO_HOST" to ProjectConfig.REPO_HOST,

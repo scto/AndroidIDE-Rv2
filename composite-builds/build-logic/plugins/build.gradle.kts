@@ -37,7 +37,6 @@ dependencies {
   implementation(projects.buildLogic.propertiesParser)
 
   implementation("com.android.tools.build:gradle:${libs.versions.agp.asProvider().get()}")
-  implementation(libs.maven.publish)
 
   implementation(libs.common.jkotlin)
   implementation(libs.common.antlr4)

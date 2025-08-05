@@ -19,7 +19,6 @@
 plugins {
   //noinspection JavaPluginLanguageLevel
   id("java-library")
-  id("com.vanniktech.maven.publish.base")
 }
 
 
