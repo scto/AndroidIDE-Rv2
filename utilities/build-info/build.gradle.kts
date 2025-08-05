@@ -66,10 +66,7 @@ tasks.create("generateBuildInfo") {
 
         "AGP_VERSION_MININUM" to AGP_VERSION_MINIMUM,
         "AGP_VERSION_LATEST" to libs.versions.agp.tooling.get(),
-        "AGP_VERSION_GRADLE_LATEST" to SdkConstants.GRADLE_LATEST_VERSION,
-
-        "SNAPSHOTS_REPOSITORY" to VersionUtils.SONATYPE_SNAPSHOTS_REPO,
-        "PUBLIC_REPOSITORY" to VersionUtils.SONATYPE_PUBLIC_REPO,
+        "AGP_VERSION_GRADLE_LATEST" to SdkConstants.GRADLE_LATEST_VERSION
       )
     )
   }

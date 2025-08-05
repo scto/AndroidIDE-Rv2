@@ -29,14 +29,9 @@ import javax.xml.xpath.XPathFactory
 object VersionUtils {
 
   /**
-   * The Sonatype snapshots repository.
+   * The Center repository.
    */
-  const val SONATYPE_SNAPSHOTS_REPO = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-
-  /**
-   * The Sonatype release repository.
-   */
-  const val SONATYPE_PUBLIC_REPO = "https://s01.oss.sonatype.org/content/groups/public/"
+  const val CENTER_REPO = "https://repo1.maven.org/maven2"
 
   /**
    * The latest integration version name.
@@ -49,7 +44,7 @@ object VersionUtils {
   private var cachedVersion: String? = null
 
   /**
-   * Gets the latest snapshot version of the given artifact from the Sonatype snapshots repository.
+   * Gets the latest snapshot version of the given artifact from the Center repository.
    */
   @JvmStatic
   fun getLatestSnapshotVersion(artifact: String): String {
@@ -59,7 +54,7 @@ object VersionUtils {
     }
 
     val groupId = BuildConfig.packageName.replace('.', '/')
-    val moduleMetadata = "$SONATYPE_SNAPSHOTS_REPO/$groupId/${artifact}/maven-metadata.xml"
+    val moduleMetadata = "$CENTER_REPO/$groupId/${artifact}/maven-metadata.xml"
     return try {
        BufferedInputStream(URI.create(moduleMetadata).toURL().openStream()).use { inputStream ->
         val builderFactory = DocumentBuilderFactory.newInstance()
