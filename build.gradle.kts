@@ -18,7 +18,6 @@
 @file:Suppress("UnstableApiUsage")
 
 import com.itsaky.androidide.build.config.BuildConfig
-import com.itsaky.androidide.build.config.FDroidConfig
 import com.itsaky.androidide.build.config.publishingVersion
 import com.itsaky.androidide.plugins.AndroidIDEPlugin
 import com.itsaky.androidide.plugins.conf.configureAndroidModule
@@ -56,9 +55,6 @@ subprojects {
     }
     project.group = group
   }
-
-  // Always load the F-Droid config
-  FDroidConfig.load(project)
 
   afterEvaluate {
     apply { plugin(AndroidIDEPlugin::class.java) }

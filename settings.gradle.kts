@@ -28,7 +28,6 @@ pluginManagement {
     maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
     maven { url = uri("https://maven.aliyun.com/repository/central") }
     maven { url = uri("https://maven.aliyun.com/repository/google") }
-    
     gradlePluginPortal()
     google()
     mavenCentral()
@@ -73,54 +72,16 @@ dependencyResolutionManagement {
   repositories {
     maven { url = uri("https://maven.aliyun.com/repository/central") }
     maven { url = uri("https://maven.aliyun.com/repository/google") }
-    
     google()
     mavenCentral()
-    maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
-    maven { url = uri("https://s01.oss.sonatype.org/content/groups/public/") }
+    maven { url = uri("https://central.sonatype.com/repository/maven-snapshots") }
     maven { url = uri("https://jitpack.io") }
   }
 }
 
-buildscript {
-  repositories {
-    mavenCentral()
-  }
-  dependencies {
-    classpath("com.mooltiverse.oss.nyx:gradle:2.5.2")
-  }
-}
-
-val isGitRepo by lazy {
-  cmdOutput("git", "rev-parse", "--is-inside-work-tree").trim() == "true"
-}
-
-private fun cmdOutput(vararg args: String): String {
-  return ProcessBuilder(*args)
-    .directory(File("."))
-    .redirectErrorStream(true)
-    .start()
-    .inputStream
-    .bufferedReader()
-    .readText()
-    .trim()
-}
-
-FDroidConfig.load(rootDir)
-
-if (FDroidConfig.hasRead && FDroidConfig.isFDroidBuild) {
-  gradle.rootProject {
-    val regex = Regex("^v\\d+\\.?\\d+\\.?\\d+-\\w+")
-
-    val simpleVersion = regex.find(FDroidConfig.fDroidVersionName!!)?.value
-      ?: throw IllegalArgumentException("Invalid version '${FDroidConfig.fDroidVersionName}. Version name must have semantic version format.'")
-
-    project.setProperty("version", simpleVersion)
-  }
-} else if(isGitRepo) {
-  apply {
-    plugin("com.mooltiverse.oss.nyx")
-  }
+// = App version name
+gradle.rootProject {
+  project.setProperty("version", "2.7.1-beta-R")
 }
 
 rootProject.name = "AndroidIDE"
@@ -180,43 +141,3 @@ include(
   ":xml:resources-api",
   ":xml:utils",
 )
-
-object FDroidConfig {
-
-  var hasRead: Boolean = false
-    private set
-
-  var isFDroidBuild: Boolean = false
-    private set
-
-  var fDroidVersionName: String? = null
-    private set
-
-  var fDroidVersionCode: Int? = null
-    private set
-
-  const val PROP_FDROID_BUILD = "ide.build.fdroid"
-  const val PROP_FDROID_BUILD_VERSION = "ide.build.fdroid.version"
-  const val PROP_FDROID_BUILD_VERCODE = "ide.build.fdroid.vercode"
-
-  fun load(rootDir: File) {
-    val propsFile = File(rootDir, "fdroid.properties")
-    if (!propsFile.exists() || !propsFile.isFile) {
-      hasRead = true
-      isFDroidBuild = false
-      return
-    }
-
-    val properties = propsFile.let { props ->
-      java.util.Properties().also {
-        it.load(props.reader())
-      }
-    }
-
-    hasRead = true
-    isFDroidBuild = properties.getProperty(PROP_FDROID_BUILD, null).toBoolean()
-
-    fDroidVersionName = properties.getProperty(PROP_FDROID_BUILD_VERSION, null)
-    fDroidVersionCode =  properties.getProperty(PROP_FDROID_BUILD_VERCODE, null)?.toInt()
-  }
-}

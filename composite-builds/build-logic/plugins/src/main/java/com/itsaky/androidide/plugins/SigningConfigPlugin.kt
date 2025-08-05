@@ -21,7 +21,6 @@ import com.android.build.gradle.BaseExtension
 import com.itsaky.androidide.build.config.KEY_ALIAS
 import com.itsaky.androidide.build.config.KEY_PASS
 import com.itsaky.androidide.build.config.KEY_STORE_PASS
-import com.itsaky.androidide.build.config.isFDroidBuild
 import com.itsaky.androidide.build.config.signingKey
 import com.itsaky.androidide.plugins.util.SigningKeyUtils.downloadSigningKey
 import com.itsaky.androidide.plugins.util.SigningKeyUtils.getEnvOrProp
@@ -37,12 +36,6 @@ class SigningConfigPlugin : Plugin<Project> {
 
   override fun apply(target: Project) {
     target.run {
-
-      if (isFDroidBuild) {
-        logger.warn("!!! Do not apply ${javaClass.simpleName} when building or F-Droid.")
-        return
-      }
-
       downloadSigningKey()
 
       val signingKey = signingKey.get().asFile

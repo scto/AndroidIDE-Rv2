@@ -24,8 +24,6 @@ import com.android.build.api.variant.FilterConfiguration
 import com.android.build.api.variant.impl.getFilter
 import com.android.build.gradle.BaseExtension
 import com.itsaky.androidide.build.config.BuildConfig
-import com.itsaky.androidide.build.config.FDroidConfig
-import com.itsaky.androidide.build.config.isFDroidBuild
 import com.itsaky.androidide.build.config.projectVersionCode
 import com.itsaky.androidide.plugins.NoDesugarPlugin
 import com.itsaky.androidide.plugins.util.SdkUtils.getAndroidJar
@@ -130,11 +128,7 @@ fun Project.configureAndroidModule(
           reset()
           isEnable = true
           isUniversalApk = false
-          if (isFDroidBuild) {
-            include(FDroidConfig.fDroidBuildArch!!)
-          } else {
-            include(*flavorsAbis.keys.toTypedArray())
-          }
+          include(*flavorsAbis.keys.toTypedArray())
         }
       }
 

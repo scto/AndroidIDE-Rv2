@@ -17,10 +17,8 @@
 
 package com.itsaky.androidide.plugins.tasks
 
-import com.itsaky.androidide.build.config.FDroidConfig
 import com.itsaky.androidide.plugins.util.DownloadUtils
 import com.itsaky.androidide.plugins.util.ELFUtils
-import com.itsaky.androidide.build.config.isFDroidBuild
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.OutputDirectory
@@ -52,31 +50,6 @@ abstract class SetupAapt2Task : DefaultTask() {
 
   @TaskAction
   fun setupAapt2() {
-
-    // When building for F-Droid, simply copy the aapt2 file
-    if (project.isFDroidBuild) {
-      val arch = FDroidConfig.fDroidBuildArch!!
-
-      val file = outputDirectory.file("${arch}/libaapt2.so").get().asFile
-      file.parentFile.deleteRecursively()
-      file.parentFile.mkdirs()
-
-      val aapt2File = requireNotNull(FDroidConfig.aapt2Files[arch]) {
-        "F-Droid build is enabled but path to AAPT2 file for $arch is not set."
-      }
-
-      val aapt2 = File(aapt2File)
-
-      require(aapt2.exists() && aapt2.isFile) {
-        "F-Droid AAPT2 file does not exist or is not a file: $aapt2"
-      }
-
-      logger.info("Copying $aapt2 to $file")
-      aapt2.copyTo(file, overwrite = true)
-      assertAapt2Arch(file, ELFUtils.ElfAbi.forName(arch)!!)
-      return
-    }
-
     // When not building for F-Droid, download aapt2 files from GitHub
     AAPT2_CHECKSUMS.forEach { (arch, checksum) ->
       val file = outputDirectory.file("${arch}/libaapt2.so").get().asFile

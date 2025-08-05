@@ -19,8 +19,6 @@
 import com.android.SdkConstants
 import com.itsaky.androidide.build.config.AGP_VERSION_MINIMUM
 import com.itsaky.androidide.build.config.BuildConfig
-import com.itsaky.androidide.build.config.CI
-import com.itsaky.androidide.build.config.FDroidConfig
 import com.itsaky.androidide.build.config.ProjectConfig
 import com.itsaky.androidide.build.config.VersionUtils
 import com.itsaky.androidide.build.config.downloadVersion
@@ -60,14 +58,6 @@ tasks.create("generateBuildInfo") {
         "VERSION_NAME_SIMPLE" to rootProject.simpleVersionName,
         "VERSION_NAME_PUBLISHING" to rootProject.publishingVersion,
         "VERSION_NAME_DOWNLOAD" to rootProject.downloadVersion,
-
-        "FDROID_BUILD" to FDroidConfig.isFDroidBuild.toString(),
-        "FDROID_BUILD_VERSION_NAME" to (FDroidConfig.fDroidVersionName ?: "null"),
-        "FDROID_BUILD_VERSION_CODE" to (FDroidConfig.fDroidVersionCode ?: -1).toString(),
-
-        "CI_BUILD" to CI.isCiBuild.toString(),
-        "CI_GIT_BRANCH" to if (CI.isGitRepo) CI.branchName else "NOT-A-GIT-REPO",
-        "CI_COMMIT_HASH" to if (CI.isGitRepo) CI.commitHash else "NOT-A-GIT-REPO",
 
         "REPO_HOST" to ProjectConfig.REPO_HOST,
         "REPO_OWNER" to ProjectConfig.REPO_OWNER,
