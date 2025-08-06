@@ -27,6 +27,7 @@ plugins {
 subprojects {
   plugins.withId("com.android.library") {
     extensions.getByType(BaseExtension::class.java).apply {
+      buildToolsVersion = "34.0.4"
       compileSdkVersion(34)
 
       defaultConfig {

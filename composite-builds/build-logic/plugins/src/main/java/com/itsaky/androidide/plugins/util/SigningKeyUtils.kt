@@ -35,43 +35,6 @@ object SigningKeyUtils {
   
   private val _warned = mutableMapOf<String, Boolean>()
 
-  @JvmStatic
-  fun Project.downloadSigningKey() {
-    val signingKey = signingKey.get().asFile
-    if (signingKey.exists()) {
-      logger.info("Skipping download as ${signingKey.name} file already exists.")
-      return
-    }
-
-    signingKey.parentFile.mkdirs()
-
-    getEnvOrProp(key = KEY_BIN, warn = false)?.also { bin ->
-      val contents = Base64.getDecoder().decode(bin)
-      signingKey.writeBytes(contents)
-      return
-    }
-
-    // URL to download the signing key
-    val url = getEnvOrProp(KEY_URL) ?: return
-
-    // Username and password required to download the keystore
-    val user = getEnvOrProp(AUTH_USER) ?: return
-    val pass = getEnvOrProp(AUTH_PASS) ?: return
-
-    logger.info("Downloading signing key...")
-    val result = exec {
-      var rootGradle: Gradle? = gradle
-      while (rootGradle?.parent != null) {
-        rootGradle = rootGradle.parent
-      }
-
-      workingDir(rootGradle!!.rootProject.projectDir)
-      commandLine("bash", "./scripts/download_key.sh", signingKey.absolutePath, url, user, pass)
-    }
-
-    result.assertNormalExitValue()
-  }
-
   internal fun Project.getEnvOrProp(key: String, warn: Boolean = true): String? {
     var value: String? = System.getenv(key)
     if (value.isNullOrBlank()) {
