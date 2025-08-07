@@ -35,7 +35,7 @@ object DevOpsPreferences {
     }
 
   var logsenderEnabled: Boolean
-    get() = prefManager.getBoolean(KEY_DEVOPTS_DEBUGGING_ENABLE_LOGSENDER, true)
+    get() = prefManager.getBoolean(KEY_DEVOPTS_DEBUGGING_ENABLE_LOGSENDER, false)
     set(value) {
       prefManager.putBoolean(KEY_DEVOPTS_DEBUGGING_ENABLE_LOGSENDER, value)
     }
