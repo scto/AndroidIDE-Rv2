@@ -98,7 +98,7 @@ lint/tmp/
 
 # R
 scripts/
-signing/
-local.properties
+# signing/
+# local.properties
 build.log
 .androidide
