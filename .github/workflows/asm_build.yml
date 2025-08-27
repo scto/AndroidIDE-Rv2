@@ -2,7 +2,11 @@ name: Build and test
 
 on:
   push:
-    branches: [ "dev", "main", "indexing", "release/**" ]
+    branches: 
+      - "dev"
+      - "main" 
+      - "indexing"
+      - "release/**"
     paths-ignore:
       - '**.md'
       - 'fastlane/**'
@@ -64,4 +68,3 @@ jobs:
         with:
           name: apk-x86_64-release
           path: app-x86_64-release.apk
-          

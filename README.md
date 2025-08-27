@@ -9,9 +9,9 @@
 
 <p align="center">
 <!-- Latest release -->
-<img src="https://img.shields.io/github/v/release/AndroidIDEOfficial/AndroidIDE?include_prereleases&amp;label=latest%20release" alt="Latest release">
+<img src="https://img.shields.io/github/v/release/Mohammed-baqer-null/AndroidIDE-Rv2?include_prereleases&amp;label=latest%20release" alt="Latest release">
 <!-- Build and test -->
-<img src="https://github.com/AndroidIDEOfficial/AndroidIDE/actions/workflows/build.yml/badge.svg" alt="Builds and tests">
+<img src="https://github.com/Mohammed-baqer-null/AndroidIDE-Rv2/actions/workflows/asm_build.yml/badge.svg" alt="Builds and tests">
 <!-- CodeFactor -->
 <img src="https://www.codefactor.io/repository/github/androidideofficial/androidide/badge/main" alt="CodeFactor">
 <!-- Crowdin -->
@@ -29,14 +29,12 @@
   <a href="https://t.me/androidide_discussions">Join us on Telegram</a>
 </p>
 
-> [!WARNING]
-> 
-> THIS PROJECT IS NOT MAINTAINED ANYMORE.
 
 ## Features
 
 - [x] Gradle support.
 - [x] `JDK 11` and `JDK 17` available for use.
+- [x] 🆕 NDK support (Currently implementing it...)
 - [x] Terminal with necessary packages.
 - [x] Custom environment variables (for Build & Terminal).
 - [x] SDK Manager (Available via terminal).
@@ -68,7 +66,7 @@
     height="80">](https://github.com/AndroidIDEOfficial/AndroidIDE/releases)
 
 > _Please install AndroidIDE from trusted sources only i.e._
-> - [_The AndroidIDE website_](https://androidide.com)
+> > - [_The AndroidIDE website_](https://androidide.com)
 > - [_GitHub Releases_](https://github.com/AndroidIDEOfficial/AndroidIDE/releases)
 > - [_GitHub Actions_](https://github.com/AndroidIDEOfficial/AndroidIDE/actions?query=branch%3Adev+event%3Apush)
 > - [_F-Droid_](https://f-droid.org/packages/com.itsaky.androidide/)
@@ -139,3 +137,4 @@ along with AndroidIDE.  If not, see <https://www.gnu.org/licenses/>.
 
 Any violations to the license can be reported either by opening an issue or writing a mail to us
 directly.
+
