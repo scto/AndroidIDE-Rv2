@@ -1,6 +1,7 @@
-#!/bin/bash
-# Modified by Mohammed-baqer-null @ https://github.com/Mohammed-baqer-null
+#!/data/data/com.itsaky.androidide/files/usr/bin/bash
 
+# Modified by Mohammed-baqer-null @ https://github.com/Mohammed-baqer-null
+# ++ ndk support 
 set -eu
 
 Color_Off='\033[0m'
@@ -36,31 +37,38 @@ ensure_ndk() {
     return 0
 }
 
-setup_ndk() {
-    local ndkUrl="https://github.com/Mohammed-Baqer-null/AndroidIDE-Rv2-ndk/releases/download/v27.1.12297006/android-ndk-r27b-aarch64.zip"
-    # clear terminal screen 
-    clear
-    
-    if is_yes $'\033[0;32m[ NDK SETUP ]\033[0m Would you like to install and setup Android NDK'; then
-        # Ensuing ndk dir exists in android-sdk
-        [ ! -d "$HOME/android-sdk/ndk" ] && {
-            mkdir -p "$HOME/android-sdk/ndk"
-        }
-        # check if the ndk already exists
-        if ! ensure_ndk; then
-            download_and_extract "Downloading android ndk..." \
-            $ndkUrl \
-            "$HOME/android-sdk/ndk" \
-            "$HOME/ndk.zip" \
-            "unzip"
-        else
-            npr "Ndk already downloaded"
-        fi
-    else
-        npr "Canceled"
-    fi
-    
-    
+setup_ndk() {  
+    local ndkUrl="https://github.com/Mohammed-Baqer-null/AndroidIDE-Rv2-ndk/releases/download/v27.1.12297006/android-ndk-r27b-aarch64.zip"  
+
+    # clear terminal screen   
+    clear  
+
+    # check architecture  
+    local arch="$(uname -m)"  
+    if [ "$arch" != "aarch64" ]; then  
+        npr "Unsupported architecture: $arch (only aarch64/arm64-v8a is supported)"  
+        return 1  
+    fi  
+
+    if is_yes $'\033[0;32m[ NDK SETUP ]\033[0m Would you like to install and setup Android NDK'; then  
+        # Ensure ndk dir exists in android-sdk  
+        [ ! -d "$HOME/android-sdk/ndk" ] && {  
+            mkdir -p "$HOME/android-sdk/ndk"  
+        }  
+
+        # check if the ndk already exists  
+        if ! ensure_ndk; then  
+            download_and_extract "Downloading android ndk..." \  
+                $ndkUrl \  
+                "$HOME/android-sdk/ndk" \  
+                "$HOME/ndk.zip" \  
+                "unzip"  
+        else  
+            npr "Ndk already downloaded"  
+        fi  
+    else  
+        npr "Canceled"  
+    fi  
 }
 
 print_info() {
