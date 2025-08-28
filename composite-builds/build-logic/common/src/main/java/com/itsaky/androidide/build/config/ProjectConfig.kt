@@ -24,9 +24,9 @@ object ProjectConfig {
 
   const val REPO_HOST = "github.com"
   // const val REPO_OWNER = "AndroidIDEOfficial"
-  const val REPO_OWNER = "MiyazKaori"
+  const val REPO_OWNER = "Mohammed-bqer-null"
   // const val REPO_NAME = "AndroidIDE"
-  const val REPO_NAME = "AndroidIDE-R"
+  const val REPO_NAME = "AndroidIDE-Rv2"
   const val REPO_URL = "https://$REPO_HOST/$REPO_OWNER/$REPO_NAME"
   const val SCM_GIT =
     "scm:git:git://$REPO_HOST/$REPO_OWNER/$REPO_NAME.git"
@@ -55,8 +55,18 @@ val Project.simpleVersionName: String
 
 private var shouldPrintVersionCode = true
 val Project.projectVersionCode: Int
-  get() = 2710
-  
+  get() {
+    val baseVersionCode = 271
+    
+    val versionCode = "$baseVersionCode"
+    
+    if (shouldPrintVersionCode) {
+      logger.warn("Version code is '$versionCode")
+      shouldPrintVersionCode = false
+    }
+    
+    return versionCode
+  }
 /**
  * The version name which is used to download the artifacts at runtime.
  *
