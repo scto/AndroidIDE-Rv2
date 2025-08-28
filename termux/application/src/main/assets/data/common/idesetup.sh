@@ -31,15 +31,109 @@ npr() {
 
 ensure_ndk() {
     local ndkVersion="27.1.12297006"
-    [ ! -f "$HOME/android-sdk/ndk/$ndkVersion/ndk-build" ] && {
+    if [ -f "$HOME/android-sdk/ndk/$ndkVersion/ndk-build" ]; then
+        return 0
+    fi
+    return 1
+}
+
+download_and_extract_ndk() {
+    local name="$1"
+    local url="$2"
+    local extract_dir="$3"
+    local download_file="$4"
+    local extract_method="$5"
+    local max_retries=3
+    local retry_count=0
+    
+    if [ ! -d "$extract_dir" ]; then
+        mkdir -p "$extract_dir"
+        if [ $? -ne 0 ]; then
+            print_err "Failed to create directory: $extract_dir"
+            return 1
+        fi
+    fi
+    
+    if [ -f "$download_file" ]; then
+        print_info "File $(basename "$download_file") already exists."
+        if is_yes "Do you want to skip the download process?"; then
+            print_info "Skipping download..."
+        else
+            rm -f "$download_file"
+            while [ $retry_count -lt $max_retries ]; do
+                retry_count=$((retry_count + 1))
+                print_info "Downloading $name... (Attempt $retry_count/$max_retries)"
+                curl -L -o "$download_file" "$url" --http1.1
+                if [ $? -eq 0 ] && [ -f "$download_file" ]; then
+                    break
+                else
+                    print_err "Download attempt $retry_count failed"
+                    rm -f "$download_file"
+                    if [ $retry_count -eq $max_retries ]; then
+                        print_err "Failed to download $name after $max_retries attempts"
+                        return 1
+                    fi
+                    sleep 2
+                fi
+            done
+        fi
+    else
+        while [ $retry_count -lt $max_retries ]; do
+            retry_count=$((retry_count + 1))
+            print_info "Downloading $name... (Attempt $retry_count/$max_retries)"
+            curl -L -o "$download_file" "$url" --http1.1
+            if [ $? -eq 0 ] && [ -f "$download_file" ]; then
+                break
+            else
+                print_err "Download attempt $retry_count failed"
+                rm -f "$download_file"
+                if [ $retry_count -eq $max_retries ]; then
+                    print_err "Failed to download $name after $max_retries attempts"
+                    return 1
+                fi
+                sleep 2
+            fi
+        done
+    fi
+    
+    if [ ! -f "$download_file" ]; then
+        print_err "Downloaded file does not exist: $download_file"
         return 1
-    }
+    fi
+    
+    cd "$extract_dir"
+    if [ "$extract_method" == "unzip" ]; then
+        print_info "Extracting with unzip..."
+        unzip -q "$download_file"
+        if [ $? -eq 0 ]; then
+            print_success "Extraction completed successfully"
+        else
+            print_err "Extraction failed"
+            cd - > /dev/null
+            return 1
+        fi
+    else
+        print_info "Extracting with tar..."
+        tar xf "$download_file"
+        if [ $? -eq 0 ]; then
+            print_success "Extraction completed successfully"
+        else
+            print_err "Extraction failed"
+            cd - > /dev/null
+            return 1
+        fi
+    fi
+    
+    rm -f "$download_file"
+    cd - > /dev/null
+    
     return 0
 }
 
-setup_ndk() {  
-    local ndkUrl="https://github.com/Mohammed-Baqer-null/AndroidIDE-Rv2-ndk/releases/download/v27.1.12297006/android-ndk-r27b-aarch64.zip"  
-
+setup_ndk() {
+    local ndkUrl="https://github.com/Mohammed-Baqer-null/AndroidIDE-Rv2-ndk/releases/download/v27.1.12297006/android-ndk-r27b-aarch64.zip"
+    local ndkVersion="27.1.12297006"
+    
     # check architecture  
     if [[ "$ndk" == "true" ]]; then
         local arch="$(uname -m)"  
@@ -48,26 +142,51 @@ setup_ndk() {
             return 1  
         fi  
     
-        if is_yes $'\033[0;32m[ NDK SETUP ]\033[0m Would you like to install and setup Android NDK'; then  
+        if is_yes "Would you like to install and setup Android NDK"; then  
             # Ensure ndk dir exists in android-sdk  
-            [ ! -d "$HOME/android-sdk/ndk" ] && {  
-                mkdir -p "$HOME/android-sdk/ndk"  
-            }  
+            local ndk_base_dir="$HOME/android-sdk/ndk"
+            local ndk_version_dir="$ndk_base_dir/$ndkVersion"
+            local download_file="$HOME/android-ndk.zip"
+            
+            if [ ! -d "$ndk_base_dir" ]; then
+                mkdir -p "$ndk_base_dir"
+                if [ $? -ne 0 ]; then
+                    npr "Failed to create NDK directory: $ndk_base_dir"
+                    return 1
+                fi
+            fi
     
             # check if the ndk already exists  
-            if ! ensure_ndk; then  
-                download_and_extract "Downloading android ndk..." \  
-                    $ndkUrl \  
-                    "$HOME/android-sdk/ndk" \  
-                    "$HOME/ndk.zip" \  
-                    "unzip"  
+            if ! ensure_ndk; then
+                npr "Starting NDK download and installation..."
+                if download_and_extract_ndk "Android NDK r27b" "$ndkUrl" "$ndk_base_dir" "$download_file" "unzip"; then
+                    local extracted_dir=$(find "$ndk_base_dir" -maxdepth 1 -name "android-ndk-*" -type d | head -n 1)
+                    if [ -n "$extracted_dir" ] && [ "$extracted_dir" != "$ndk_version_dir" ]; then
+                        mv "$extracted_dir" "$ndk_version_dir"
+                        if [ $? -eq 0 ]; then
+                            npr "NDK directory renamed to: $ndk_version_dir"
+                        else
+                            npr "Warning: Could not rename NDK directory"
+                        fi
+                    fi
+                    
+                    if ensure_ndk; then
+                        npr "Android NDK installation completed successfully!"
+                        npr "NDK Location: $ndk_version_dir"
+                    else
+                        npr "NDK installation verification failed"
+                        return 1
+                    fi
+                else
+                    npr "NDK installation failed"
+                    return 1
+                fi
             else  
                 npr "Ndk already downloaded"  
             fi  
         else  
             npr "Canceled"  
         fi
-    
     fi
 }
 
@@ -261,7 +380,7 @@ while [ $# -gt 0 ]; do
     shift
     pkgs+=" openssh"
     ;;
-  -o | --with-ndk)
+  -wn | --with-ndk)
     shift
     ndk=true
     ;;
