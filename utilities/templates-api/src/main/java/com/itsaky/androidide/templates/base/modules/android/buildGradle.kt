@@ -62,6 +62,7 @@ plugins {
 android {
     namespace = "${data.packageName}"
     compileSdk = ${data.versions.compileSdk.api}
+    ${if (hasNative) """ndkVersion = "27.1.12297006"""" else ""}
     
     defaultConfig {
         applicationId = "${data.packageName}"
@@ -123,6 +124,7 @@ plugins {
 android {
     namespace '${data.packageName}'
     compileSdk ${data.versions.compileSdk.api}
+    ${if (hasNative) """ndkVersion '27.1.12297006'""" else ""}
     
     defaultConfig {
         applicationId "${data.packageName}"
