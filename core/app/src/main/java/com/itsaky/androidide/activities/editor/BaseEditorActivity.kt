@@ -123,7 +123,7 @@ import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import com.itsaky.androidide.actions.ActionData
 import com.itsaky.androidide.actions.file.SaveFileAction
-import android.contenr.Context 
+import android.content.Context 
 /**
  * Base class for EditorActivity which handles most of the view related things.
  *
