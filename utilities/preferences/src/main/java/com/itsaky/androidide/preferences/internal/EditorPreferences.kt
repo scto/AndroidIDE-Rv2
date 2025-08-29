@@ -36,6 +36,7 @@ object EditorPreferences {
   const val PRINTABLE_CHARS = "idepref_editor_nonPrintableFlags"
   const val TAB_SIZE = "idepref_editor_tabSize"
   const val AUTO_SAVE = "idepref_editor_autoSave"
+  const val AUTO_SAVE_TWO = "auto_save_enabled"
   const val FONT_LIGATURES = "idepref_editor_fontLigatures"
   const val FLAG_PASSWORD = "idepref_editor_flagPassword"
   const val WORD_WRAP = "idepref_editor_word_wrap"
@@ -109,6 +110,12 @@ object EditorPreferences {
     get() = prefManager.getBoolean(FONT_LIGATURES, true)
     set(value) {
       prefManager.putBoolean(FONT_LIGATURES, value)
+    }
+    
+  var autoSave: Boolean
+    get() = prefManager.getBoolean(AUTO_SAVE_TWO, true)
+    set(value) {
+      prefManager.putBoolean(AUTO_SAVE_TWO, value)
     }
 
   var visiblePasswordFlag: Boolean

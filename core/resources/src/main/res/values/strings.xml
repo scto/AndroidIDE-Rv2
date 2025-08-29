@@ -215,6 +215,10 @@
   <string name="idepref_java_matchLower_summary">If enabled, then typing a lower case or upper case letters will suggest class names as well as scope members.</string>
   <string name="idepref_editor_ligatures_title">Font ligatures</string>
   <string name="idepref_editor_ligatures_summary">Enable/disable font ligatures</string>
+
+  <string name="idepref_editor_autosave_title">Enable/disable auto save</string>
+  <string name="idepref_editor_autosave_summary">Enable/disable auto save every 2 seconds</string>
+
   <string name="yes">Yes</string>
   <string name="no">No</string>
   <string name="msg_viewaction_add_attr">Add attribute</string>

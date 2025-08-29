@@ -33,6 +33,7 @@ import com.itsaky.androidide.preferences.internal.EditorPreferences.DELETE_EMPTY
 import com.itsaky.androidide.preferences.internal.EditorPreferences.DELETE_TABS_ON_BACKSPACE
 import com.itsaky.androidide.preferences.internal.EditorPreferences.FLAG_PASSWORD
 import com.itsaky.androidide.preferences.internal.EditorPreferences.FONT_LIGATURES
+import com.itsaky.androidide.preferences.internal.EditorPreferences.AUTO_SAVE_TWO
 import com.itsaky.androidide.preferences.internal.EditorPreferences.FONT_SIZE
 import com.itsaky.androidide.preferences.internal.EditorPreferences.PIN_LINE_NUMBERS
 import com.itsaky.androidide.preferences.internal.EditorPreferences.PRINTABLE_CHARS
@@ -77,6 +78,7 @@ private class CommonConfigurations(
     addPreference(ColorSchemePreference())
     addPreference(NonPrintablePaintingFlags())
     addPreference(FontLigatures())
+    addPreference(autoSave())
     addPreference(UseCustomFont())
     addPreference(UseSoftTab())
     addPreference(WordWrap())
@@ -137,6 +139,16 @@ private class FontLigatures(
   override val icon: Int? = drawable.ic_font_ligatures,
 ) : SwitchPreference(setValue = EditorPreferences::fontLigatures::set,
   getValue = EditorPreferences::fontLigatures::get)
+
+@Parcelize
+private class autoSave(
+  override val key: String = AUTO_SAVE_TWO,
+  override val title: Int = string.idepref_editor_autosave_title,
+  override val summary: Int? = string.idepref_editor_autosave_summary,
+  override val icon: Int? = drawable.ic_save,
+) : SwitchPreference(setValue = EditorPreferences::autoSave::set,
+  getValue = EditorPreferences::autoSave::get)
+
 
 @Parcelize
 private class UseSoftTab(

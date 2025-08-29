@@ -26,6 +26,7 @@ import android.os.Process
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.TextUtils
+import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.View
@@ -95,6 +96,7 @@ import com.itsaky.androidide.utils.DialogUtils.newMaterialDialogBuilder
 import com.itsaky.androidide.utils.InstallationResultHandler.onResult
 import com.itsaky.androidide.utils.IntentUtils
 import com.itsaky.androidide.utils.MemoryUsageWatcher
+import com.itsaky.androidide.utils.SingleTextWatcher
 import com.itsaky.androidide.utils.flashError
 import com.itsaky.androidide.utils.resolveAttr
 import com.itsaky.androidide.viewmodel.EditorViewModel
@@ -103,11 +105,17 @@ import com.itsaky.androidide.xml.versions.ApiVersionsRegistry
 import com.itsaky.androidide.xml.widgets.WidgetTableRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode.MAIN
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
@@ -126,6 +134,13 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
   protected var editorBottomSheet: BottomSheetBehavior<out View?>? = null
   protected val memoryUsageWatcher = MemoryUsageWatcher()
   protected val pidToDatasetIdxMap = MutableIntIntMap(initialCapacity = 3)
+
+  // Auto-save related properties
+  private val autoSaveJob: Job? = null
+  private val autoSaveMutex = Mutex()
+  private val pendingSaveFiles = ConcurrentHashMap<File, Boolean>()
+  private val editorTextWatchers = ConcurrentHashMap<CodeEditorView, TextWatcher>()
+  private var autoSaveCoroutineJob: Job? = null
 
   var isDestroying = false
     protected set
@@ -211,10 +226,12 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
     protected val log: Logger = LoggerFactory.getLogger(BaseEditorActivity::class.java)
 
     private const val OPTIONS_MENU_INVALIDATION_DELAY = 150L
+    private const val AUTO_SAVE_DELAY_MS = 2000L // 2 seconds
 
     const val EDITOR_CONTAINER_SCALE_FACTOR = 0.87f
     const val KEY_BOTTOM_SHEET_SHOWN = "editor_bottomSheetShown"
     const val KEY_PROJECT_PATH = "saved_projectPath"
+    const val KEY_AUTO_SAVE_ENABLED = "auto_save_enabled"
   }
 
   protected abstract fun provideCurrentEditor(): CodeEditorView?
@@ -229,6 +246,201 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
 
   internal abstract fun doConfirmProjectClose()
 
+  /**
+   * Abstract method to save a file. Subclasses should implement the actual file saving logic.
+   */
+  protected abstract fun doSaveFile(editor: CodeEditorView): Boolean
+
+  /**
+   * Check if auto-save is enabled in preferences
+   */
+  protected open fun isAutoSaveEnabled(): Boolean {
+    return app.prefManager.getBoolean(KEY_AUTO_SAVE_ENABLED, true)
+  }
+
+  /**
+   * Auto-save TextWatcher implementation
+   */
+  private inner class AutoSaveTextWatcher(private val editor: CodeEditorView) : SingleTextWatcher() {
+    override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+      if (!isAutoSaveEnabled() || isDestroying) {
+        return
+      }
+
+      val file = editor.file
+      if (file != null && file.exists() && file.canWrite()) {
+        // Mark file as needing save
+        pendingSaveFiles[file] = true
+        log.debug("File marked for auto-save: ${file.absolutePath}")
+      }
+    }
+  }
+
+  /**
+   * Start auto-save mechanism
+   */
+  private fun startAutoSave() {
+    if (autoSaveCoroutineJob?.isActive == true) {
+      return
+    }
+
+    autoSaveCoroutineJob = editorActivityScope.launch {
+      while (!isDestroying) {
+        try {
+          delay(AUTO_SAVE_DELAY_MS)
+          
+          if (isAutoSaveEnabled() && !isDestroying) {
+            performAutoSave()
+          }
+        } catch (e: Exception) {
+          log.error("Error in auto-save coroutine", e)
+        }
+      }
+    }
+    
+    log.debug("Auto-save mechanism started")
+  }
+
+  /**
+   * Stop auto-save mechanism
+   */
+  private fun stopAutoSave() {
+    autoSaveCoroutineJob?.cancel()
+    autoSaveCoroutineJob = null
+    log.debug("Auto-save mechanism stopped")
+  }
+
+  /**
+   * Perform auto-save for all pending files
+   */
+  private suspend fun performAutoSave() {
+    if (pendingSaveFiles.isEmpty()) {
+      return
+    }
+
+    autoSaveMutex.withLock {
+      val filesToSave = pendingSaveFiles.keys.toList()
+      pendingSaveFiles.clear()
+      
+      for (file in filesToSave) {
+        try {
+          val editor = findEditorForFile(file)
+          if (editor != null) {
+            // Perform save on main thread
+            ThreadUtils.runOnUiThread {
+              try {
+                if (doSaveFile(editor)) {
+                  log.debug("Auto-saved file: ${file.absolutePath}")
+                  
+                  // Show subtle indication that file was auto-saved
+                  showAutoSaveIndicator(file.name)
+                } else {
+                  log.warn("Failed to auto-save file: ${file.absolutePath}")
+                }
+              } catch (e: Exception) {
+                log.error("Error auto-saving file: ${file.absolutePath}", e)
+              }
+            }
+          }
+        } catch (e: Exception) {
+          log.error("Error processing auto-save for file: ${file.absolutePath}", e)
+        }
+      }
+    }
+  }
+
+  /**
+   * Find the editor instance for a given file
+   */
+  private fun findEditorForFile(file: File): CodeEditorView? {
+    val openedFiles = getOpenedFiles()
+    for (i in openedFiles.indices) {
+      val editor = provideEditorAt(i)
+      if (editor?.file?.absolutePath == file.absolutePath) {
+        return editor
+      }
+    }
+    return null
+  }
+
+  /**
+   * Show a subtle indicator that a file was auto-saved
+   */
+  private fun showAutoSaveIndicator(fileName: String) {
+    // Update status to show auto-save happened
+    val statusText = "Auto-saved: $fileName"
+    doSetStatus(statusText, android.view.Gravity.START)
+    
+    // Clear the status after a short delay
+    ThreadUtils.runOnUiThreadDelayed({
+      if (!isDestroying) {
+        doSetStatus("", android.view.Gravity.START)
+      }
+    }, 1500)
+  }
+
+  /**
+   * Add text watcher to an editor for auto-save functionality
+   */
+  protected fun addAutoSaveTextWatcher(editor: CodeEditorView) {
+    if (!isAutoSaveEnabled()) {
+      return
+    }
+
+    // Remove existing watcher if present
+    removeAutoSaveTextWatcher(editor)
+    
+    val textWatcher = AutoSaveTextWatcher(editor)
+    editor.editor.addTextChangeListener(textWatcher)
+    editorTextWatchers[editor] = textWatcher
+    
+    log.debug("Added auto-save text watcher for file: ${editor.file?.absolutePath}")
+  }
+
+  /**
+   * Remove text watcher from an editor
+   */
+  protected fun removeAutoSaveTextWatcher(editor: CodeEditorView) {
+    val existingWatcher = editorTextWatchers.remove(editor)
+    if (existingWatcher != null) {
+      editor.editor.removeTextChangeListener(existingWatcher)
+      log.debug("Removed auto-save text watcher for file: ${editor.file?.absolutePath}")
+    }
+  }
+
+  /**
+   * Save all pending files immediately
+   */
+  protected fun saveAllPendingFiles() {
+    if (pendingSaveFiles.isEmpty()) {
+      return
+    }
+
+    editorActivityScope.launch {
+      performAutoSave()
+    }
+  }
+
+  /**
+   * Called when a new editor is created or file is opened
+   */
+  protected fun onEditorCreated(editor: CodeEditorView) {
+    addAutoSaveTextWatcher(editor)
+  }
+
+  /**
+   * Called when an editor is closed or destroyed
+   */
+  protected fun onEditorDestroyed(editor: CodeEditorView) {
+    removeAutoSaveTextWatcher(editor)
+    
+    // Remove from pending saves if present
+    val file = editor.file
+    if (file != null) {
+      pendingSaveFiles.remove(file)
+    }
+  }
+
   protected open fun preDestroy() {
     _binding = null
 
@@ -242,6 +454,19 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
     installationCallback = null
 
     if (isDestroying) {
+      // Save all pending files before destroying
+      saveAllPendingFiles()
+      
+      // Stop auto-save mechanism
+      stopAutoSave()
+      
+      // Clear text watchers
+      editorTextWatchers.keys.forEach { editor ->
+        removeAutoSaveTextWatcher(editor)
+      }
+      editorTextWatchers.clear()
+      pendingSaveFiles.clear()
+      
       memoryUsageWatcher.stopWatching(true)
       memoryUsageWatcher.listener = null
       editorActivityScope.cancelIfActive("Activity is being destroyed")
@@ -348,6 +573,9 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
 
     setupMemUsageChart()
     watchMemory()
+    
+    // Start auto-save mechanism
+    startAutoSave()
   }
 
   private fun onSwipeRevealDragProgress(progress: Float) {
@@ -445,6 +673,10 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
 
   override fun onPause() {
     super.onPause()
+    
+    // Save all pending files before pausing
+    saveAllPendingFiles()
+    
     memoryUsageWatcher.listener = null
     memoryUsageWatcher.stopWatching(false)
 
@@ -458,6 +690,11 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
 
     memoryUsageWatcher.listener = memoryUsageListener
     memoryUsageWatcher.startWatching()
+    
+    // Restart auto-save if it was stopped
+    if (autoSaveCoroutineJob?.isActive != true) {
+      startAutoSave()
+    }
 
     try {
       getFileTreeFragment()?.listProjectFiles()
@@ -469,6 +706,10 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
 
   override fun onStop() {
     super.onStop()
+    
+    // Save all pending files before stopping
+    saveAllPendingFiles()
+    
     checkIsDestroying()
   }
 
@@ -480,6 +721,9 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
   }
 
   override fun onSaveInstanceState(outState: Bundle) {
+    // Save all pending files before saving instance state
+    saveAllPendingFiles()
+    
     outState.putString(KEY_PROJECT_PATH, IProjectManager.getInstance().projectDirPath)
     super.onSaveInstanceState(outState)
   }
@@ -502,6 +746,9 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
     editorViewModel.setCurrentFile(position, editorView.file)
     refreshSymbolInput(editorView)
     invalidateOptionsMenu()
+    
+    // Ensure auto-save text watcher is attached to the newly selected editor
+    addAutoSaveTextWatcher(editorView)
   }
 
   override fun onTabUnselected(tab: Tab) {}
@@ -668,6 +915,14 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
         } else {
           tabs.visibility = View.VISIBLE
           viewContainer.displayedChild = 0
+          
+          // Add auto-save text watchers to all open editors
+          files.forEachIndexed { index, _ ->
+            val editor = provideEditorAt(index)
+            if (editor != null) {
+              addAutoSaveTextWatcher(editor)
+            }
+          }
         }
       }
 
