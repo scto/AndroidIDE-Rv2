@@ -216,8 +216,8 @@
   <string name="idepref_editor_ligatures_title">Font ligatures</string>
   <string name="idepref_editor_ligatures_summary">Enable/disable font ligatures</string>
 
-  <string name="idepref_editor_autosave_title">Enable/disable auto save</string>
-  <string name="idepref_editor_autosave_summary">Enable/disable auto save every 2 seconds</string>
+  <string name="idepref_editor_autosave_title">✨Auto save</string>
+  <string name="idepref_editor_autosave_summary">Automatically saves all edits every 2 seconds to prevent data loss in case of unexpected application termination.</string>
 
   <string name="yes">Yes</string>
   <string name="no">No</string>
