@@ -32,7 +32,7 @@
 
 - [x] NDK support (Only for `aarch64` android devices)
 - [x] Install via shizuku (implemented by [MiyazKaori](https://github.com/MiyazKaori))
-- Check out the [New Features](https://github.com/Mohammed-baqer-null/AndroidIDE-Rv2/whatsnew/README.md) implemented by [Mohammed-baqer-null](https://github.com/Mohammed-baqer-null)
+- Check out the [New Features](https://github.com/Mohammed-Baqer-null/AndroidIDE-Rv2/tree/dev/whatsnew#whats-new) implemented by [Mohammed-baqer-null](https://github.com/Mohammed-baqer-null)
 
 ## Features
 
