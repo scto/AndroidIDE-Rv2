@@ -272,29 +272,29 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
    * Auto-save TextWatcher implementation
    */
     private fun checkForContentChanges() {
-      if (!isAutoSaveEnabled() || isDestroying) {
-        return
-      }
+        if (!isAutoSaveEnabled() || isDestroying) {
+            return
+        }
     
-      val openedFiles = getOpenedFiles()
-      for (i in openedFiles.indices) {
-        val editor = provideEditorAt(i) ?: continue
-        if (editor.file != null) {
-          try {
-            val currentContent = editor.editor?.text?.toString() ?: ""
-            val currentHash = currentContent.hashCode()
-            val lastHash = editorContentHashes[editor] ?: 0
-            
-            if (currentHash != lastHash && currentContent.isNotEmpty()) {
-              // Content has changed
-              editorContentHashes[editor] = currentHash
-              val file = editor.file!!
-              if (file.exists() && file.canWrite()) {
-                pendingSaveFiles[file] = true
-                log.debug("Content changed, marked for auto-save: ${file.absolutePath}")
-              }
+        try {
+            val openedFiles = getOpenedFiles()
+            for (i in openedFiles.indices) {
+                val editor = provideEditorAt(i) ?: continue
+                val file = editor.file ?: continue
+                
+                if (file.exists() && file.canWrite()) {
+                    val currentContent = editor.editor?.text?.toString() ?: ""
+                    val currentHash = currentContent.hashCode()
+                    val lastHash = editorContentHashes[editor] ?: 0
+                    
+                    if (currentHash != lastHash && currentContent.isNotEmpty()) {
+                        editorContentHashes[editor] = currentHash
+                        pendingSaveFiles[file] = true
+                        log.debug("Content changed, marked for auto-save: ${file.absolutePath}")
+                    }
+                }
             }
-          } catch (e: Exception) {
+        } catch (e: Exception) {
             log.error("Error checking content changes for file: ${editor.file?.absolutePath}", e)
           }
         }
@@ -315,15 +315,12 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
                     delay(AUTO_SAVE_DELAY_MS)
                     
                     if (isAutoSaveEnabled() && !isDestroying) {
-                        // Check for content changes on main thread
                         withContext(Dispatchers.Main) {
                             checkForContentChanges()
                         }
                         
-                        // Small delay before saving
                         delay(100)
                         
-                        // Perform auto-save on background thread
                         if (pendingSaveFiles.isNotEmpty()) {
                             performAutoSave()
                         }
@@ -363,29 +360,24 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
             
             for (file in filesToSave) {
                 try {
-                    // Find editor on main thread
                     val editor = withContext(Dispatchers.Main) {
                         findEditorForFile(file)
                     }
                     
                     if (editor != null && !isDestroying) {
-                        // Get current content on main thread
                         val currentContent = withContext(Dispatchers.Main) {
                             editor.editor?.text?.toString() ?: ""
                         }
                         
                         if (currentContent.isNotEmpty()) {
-                            // Read file content on IO thread
                             val fileContent = withContext(Dispatchers.IO) {
                                 try {
                                     if (file.exists()) file.readText() else ""
                                 } catch (e: Exception) {
-                                    log.warn("Could not read file content for comparison: ${file.absolutePath}")
                                     ""
                                 }
                             }
                             
-                            // Compare and save if different
                             if (currentContent != fileContent) {
                                 val saveSuccess = withContext(Dispatchers.IO) {
                                     try {
@@ -401,7 +393,6 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
                                     withContext(Dispatchers.Main) {
                                         showAutoSaveIndicator(file.name)
                                     }
-                                    log.debug("Auto-saved file: ${file.absolutePath}")
                                 }
                             }
                         }
@@ -439,37 +430,6 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
         
         editorActivityScope.launch {
             performAutoSave()
-        }
-    }
-    
-    /**
-     * Check for content changes - simplified version
-     */
-    private fun checkForContentChanges() {
-        if (!isAutoSaveEnabled() || isDestroying) {
-            return
-        }
-    
-        try {
-            val openedFiles = getOpenedFiles()
-            for (i in openedFiles.indices) {
-                val editor = provideEditorAt(i) ?: continue
-                val file = editor.file ?: continue
-                
-                if (file.exists() && file.canWrite()) {
-                    val currentContent = editor.editor?.text?.toString() ?: ""
-                    val currentHash = currentContent.hashCode()
-                    val lastHash = editorContentHashes[editor] ?: 0
-                    
-                    if (currentHash != lastHash && currentContent.isNotEmpty()) {
-                        editorContentHashes[editor] = currentHash
-                        pendingSaveFiles[file] = true
-                        log.debug("Content changed, marked for auto-save: ${file.absolutePath}")
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            log.error("Error checking content changes", e)
         }
     }
 
@@ -537,23 +497,11 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
   }
 
     /**
-     * Save all pending files immediately
-     */
-    protected fun saveAllPendingFiles() {
-      if (pendingSaveFiles.isEmpty()) {
-        return
-      }
-      saveAllPendingFilesImmediate()
-    }
-
-    /**
      * Called when manual save is triggered to sync with auto-save state
      */
-    override fun onManualSave() {
-        // Clear any pending auto-saves since manual save handles everything
+    open fun onManualSave() {
         pendingSaveFiles.clear()
         
-        // Update content hashes for all open editors
         try {
             val openedFiles = getOpenedFiles()
             for (i in openedFiles.indices) {
