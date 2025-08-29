@@ -46,7 +46,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          key: ${{ runner.os }}-gradle-v2-${{ hashFiles('**/*.gradle*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Create local.properties
@@ -65,7 +65,7 @@ jobs:
           echo ""
           echo "=== Signing directory ==="
           ls -la core/app/signing/ || echo "core/app/signing directory not found"
-      - name: Assemble Release APK
+      - name: Assemble Debug APK
         run: ./gradlew :core:app:assembleDebug
         # run: ./gradlew :core:app:assembleRelease
       - name: List APK files (debug)
