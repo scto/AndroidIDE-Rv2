@@ -452,7 +452,7 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
   private fun showAutoSaveIndicator(fileName: String) {
     // Update status to show auto-save happened
     val statusText = "Auto-saved: $fileName"
-    doSetStatus(statusText, android.view.Gravity.START)
+    doSetStatus(statusText, android.view.Gravity.CENTER)
     
     // Clear the status after a short delay
     ThreadUtils.runOnUiThreadDelayed({
