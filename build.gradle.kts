@@ -67,9 +67,9 @@ subprojects {
   plugins.withId("java-library") { configureJavaModule() }
 
   tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-      jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(BuildConfig.javaVersion.toString()))
-      freeCompilerArgs.add("-Xstring-concat=inline")
+    kotlinOptions {
+      jvmTarget = BuildConfig.javaVersion.toString()
+      freeCompilerArgs += "-Xstring-concat=inline"
     }
   }
 }

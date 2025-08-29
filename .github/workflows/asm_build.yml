@@ -40,38 +40,21 @@ jobs:
           distribution: 'adopt'
       - name: Change Gradle wrapper permissions
         run: chmod +x ./gradlew
-      
-      - name: Clean incompatible Kotlin cache
-        run: |
-          echo "Cleaning incompatible Kotlin cache..."
-          rm -rf ~/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin
-          rm -rf ~/.gradle/caches/modules-2/files-2.1/com.squareup.retrofit2
-          rm -rf ~/.gradle/caches/modules-2/files-2.1/com.squareup.*
-      
       - name: Restore cache
         uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}-clean-cache
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      
-      - name: Create gradle.properties with compatibility settings
-        run: |
-          echo "org.gradle.jvmargs=-Xmx4096m" >> gradle.properties
-          echo "android.useAndroidX=true" >> gradle.properties
-          echo "kotlin.metadata.skip.unsupported=true" >> gradle.properties
-          echo "android.jetifier.ignorelist=retrofit-*.jar" >> gradle.properties
-      
       - name: Create local.properties
         run: |
           echo "signing.storeFile=signing/signing-key.jks" >> local.properties
           echo "signing.storePassword=123456" >> local.properties  
           echo "signing.keyAlias=android-ide" >> local.properties
           echo "signing.keyPassword=123456" >> local.properties
-      
       - name: Debug signing setup
         run: |
           echo "=== Repository structure ==="
@@ -82,45 +65,29 @@ jobs:
           echo ""
           echo "=== Signing directory ==="
           ls -la core/app/signing/ || echo "core/app/signing directory not found"
-      
-      - name: Assemble Debug APK with clean dependencies
-        run: ./gradlew :core:app:assembleDebug --refresh-dependencies --no-daemon
-      
+      - name: Assemble Release APK
+        run: ./gradlew :core:app:assembleDebug
+        # run: ./gradlew :core:app:assembleRelease
       - name: List APK files (debug)
         run: ls -la core/app/build/outputs/apk/debug/
-      
-      - name: Upload arm64-v8a Debug APK
+      - name: Upload arm64-v8a Release APK
         uses: actions/upload-artifact@v4
         with:
           name: apk-arm64-v8a-debug
           path: core/app/build/outputs/apk/debug/*arm64-v8a*.apk
         if: always()
-      
-      - name: Build Release APK (optional)
-        run: ./gradlew :core:app:assembleRelease --refresh-dependencies --no-daemon
-        if: false  # Set to true if you want release builds
-    
-      - name: Upload arm64-v8a Release APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: apk-arm64-v8a-release
-          path: core/app/build/outputs/apk/release/*arm64-v8a*.apk
-        if: always()
-      
       - name: Upload armeabi-v7a Release APK
         uses: actions/upload-artifact@v4
         with:
           name: apk-armeabi-v7a-release
           path: core/app/build/outputs/apk/release/*armeabi-v7a*.apk
         if: always()
-      
       - name: Upload x86_64 Release APK
         uses: actions/upload-artifact@v4
         with:
           name: apk-x86_64-release
           path: core/app/build/outputs/apk/release/*x86_64*.apk
         if: always()
-      
       - name: Upload universal Release APK
         uses: actions/upload-artifact@v4
         with:

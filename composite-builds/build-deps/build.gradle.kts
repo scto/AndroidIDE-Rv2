@@ -48,11 +48,7 @@ subprojects {
     }
   }
 
-tasks.withType<KotlinCompile> {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-    }
-}
-  
-  
+  tasks.withType(KotlinCompile::class.java) {
+    kotlinOptions.jvmTarget = "11"
+  }
 }
