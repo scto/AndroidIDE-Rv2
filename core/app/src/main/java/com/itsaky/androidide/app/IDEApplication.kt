@@ -196,22 +196,22 @@ class IDEApplication : TermuxApplication() {
   // private fun handleCrash(thread: Thread, th: Throwable) {
     // writeException(th)
 
-    // try {
+    try {
 
-      // val intent = Intent()
-      // intent.action = CrashHandlerActivity.REPORT_ACTION
-      // intent.putExtra(CrashHandlerActivity.TRACE_KEY, getFullStackTrace(th))
-      // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      // startActivity(intent)
-      // if (uncaughtExceptionHandler != null) {
-        // uncaughtExceptionHandler!!.uncaughtException(thread, th)
-      // }
+      val intent = Intent()
+      intent.action = CrashHandlerActivity.REPORT_ACTION
+      intent.putExtra(CrashHandlerActivity.TRACE_KEY, getFullStackTrace(th))
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      startActivity(intent)
+      if (uncaughtExceptionHandler != null) {
+        uncaughtExceptionHandler!!.uncaughtException(thread, th)
+      }
 
-      // exitProcess(1)
-    // } catch (error: Throwable) {
-      // log.error("Unable to show crash handler activity", error)
-    // }
-  // }
+      exitProcess(1)
+    } catch (error: Throwable) {
+      log.e("IDEApplication", "Unable to show crash handler activity", error)
+    }
+  }
 
   // private fun cancelStatUploadWorker() {
     // log.info("Opted-out of stat collection. Cancelling StatUploadWorker if enqueued...")

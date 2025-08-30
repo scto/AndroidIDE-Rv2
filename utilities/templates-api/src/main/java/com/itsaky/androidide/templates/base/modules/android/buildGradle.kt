@@ -1,6 +1,7 @@
 /**
  * original author: Akash Yadav
  * modified version by Mohammed-baqer-null @ https://github.com/Mohammed-baqer-null
+ *  - NDK Support 
  */
  
 /*
@@ -28,6 +29,9 @@ import com.itsaky.androidide.templates.base.AndroidModuleTemplateBuilder
 import com.itsaky.androidide.templates.base.ModuleTemplateBuilder
 import com.itsaky.androidide.templates.base.modules.dependencies
 import java.io.File
+import com.itsaky.androidide.utils.Environment
+import android.content.Context
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 private const val compose_kotlinCompilerExtensionVersion = "1.3.2"
 
@@ -49,10 +53,31 @@ private fun AndroidModuleTemplateBuilder.hasNativeFiles(): Boolean {
   return androidMkFile.exists() || cmakeListsFile.exists()
 }
 
+private fun AndroidModuleTemplateBuilder.isNdkInstalled(): Boolean {
+  val ndkBuildFile = File(Environment.ANDROID_HOME, "ndk/27.1.12297006/ndk-build")
+  return ndkBuildFile.exists()
+}
+
+private fun AndroidModuleTemplateBuilder.showNdkNotInstalledDialog(context: Context) {
+    MaterialAlertDialogBuilder(context)
+        .setTitle("NDK Not Found")
+        .setMessage("A compatible NDK (version 27.1.12297006) is not installed.\n\n" +
+                   "Native code features will be disabled for this project.\n\n" +
+                   "To enable native development, please install NDK version 27.1.12297006 " +
+                   "open a terminal then run: 'idesetup -y -c -wn'.")
+        .setPositiveButton("OK") { dialog, _ ->
+            dialog.dismiss()
+        }
+        .setCancelable(false)
+        .show()
+}
+
 private fun AndroidModuleTemplateBuilder.buildGradleSrcKts(
   isComposeModule: Boolean
 ): String {
   val hasNative = hasNativeFiles()
+  val ndkInstalled = isNdkInstalled()
+  
   return """
 plugins {
     id("$androidPlugin")
@@ -62,7 +87,7 @@ plugins {
 android {
     namespace = "${data.packageName}"
     compileSdk = ${data.versions.compileSdk.api}
-    ${if (hasNative) """ndkVersion = "27.1.12297006"""" else ""}
+    ${if (hasNative && ndkInstalled) """ndkVersion = "27.1.12297006"""" else ""}
     
     defaultConfig {
         applicationId = "${data.packageName}"
@@ -74,7 +99,7 @@ android {
         vectorDrawables { 
             useSupportLibrary = true
         }
-        ${if (hasNative) """
+        ${if (hasNative && ndkInstalled) """
         externalNativeBuild {
             ndkBuild {
                 abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64", "x86"))
@@ -94,7 +119,7 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
-    ${if (hasNative) """
+    ${if (hasNative && ndkInstalled) """
     externalNativeBuild {
         ndkBuild {
             path = file("src/main/jni/Android.mk")
@@ -115,6 +140,8 @@ private fun AndroidModuleTemplateBuilder.buildGradleSrcGroovy(
   isComposeModule: Boolean
 ): String {
   val hasNative = hasNativeFiles()
+  val ndkInstalled = isNdkInstalled()
+  
   return """
 plugins {
     id '$androidPlugin'
@@ -124,7 +151,7 @@ plugins {
 android {
     namespace '${data.packageName}'
     compileSdk ${data.versions.compileSdk.api}
-    ${if (hasNative) """ndkVersion '27.1.12297006'""" else ""}
+    ${if (hasNative && ndkInstalled) """ndkVersion '27.1.12297006'""" else ""}
     
     defaultConfig {
         applicationId "${data.packageName}"
@@ -136,7 +163,7 @@ android {
         vectorDrawables { 
             useSupportLibrary true
         }
-        ${if (hasNative) """
+        ${if (hasNative && ndkInstalled) """
         externalNativeBuild {
             ndkBuild {
                 abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64', 'x86'
@@ -157,7 +184,7 @@ android {
         targetCompatibility ${data.versions.javaTarget()}
     }
 
-    ${if (hasNative) """
+    ${if (hasNative && ndkInstalled) """
     externalNativeBuild {
         ndkBuild {
             path file('src/main/jni/Android.mk')
