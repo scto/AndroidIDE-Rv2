@@ -645,7 +645,7 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
 
     setSupportActionBar(content.editorToolbar)
 
-    setupDrawers()
+    // setupDrawers()
     content.tabs.addOnTabSelectedListener(this)
 
     setupViews()
@@ -962,11 +962,11 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
     text.replace(0, 0, endLine, text.getColumnCount(endLine), generated)
   }
 
-  private fun setupDrawers() {
-    val toggle = ActionBarDrawerToggle(
-      this, binding.editorDrawerLayout, content.editorToolbar,
-      string.app_name, string.app_name
-    )
+  // private fun setupDrawers() {
+    // val toggle = ActionBarDrawerToggle(
+      // this, binding.editorDrawerLayout, content.editorToolbar,
+      // string.app_name, string.app_name
+    // )
 
     binding.editorDrawerLayout.addDrawerListener(toggle)
     toggle.syncState()
