@@ -968,17 +968,17 @@ abstract class BaseEditorActivity : EdgeToEdgeIDEActivity(), TabLayout.OnTabSele
       // string.app_name, string.app_name
     // )
 
-    binding.editorDrawerLayout.addDrawerListener(toggle)
-    toggle.syncState()
-    binding.apply {
-      editorDrawerLayout.apply {
-        childId = contentCard.id
-        translationBehaviorStart = ContentTranslatingDrawerLayout.TranslationBehavior.FULL
-        translationBehaviorEnd = ContentTranslatingDrawerLayout.TranslationBehavior.FULL
-        setScrimColor(Color.TRANSPARENT)
-      }
-    }
-  }
+    // binding.editorDrawerLayout.addDrawerListener(toggle)
+    // toggle.syncState()
+    // binding.apply {
+      // editorDrawerLayout.apply {
+        // childId = contentCard.id
+        // translationBehaviorStart = ContentTranslatingDrawerLayout.TranslationBehavior.FULL
+        // translationBehaviorEnd = ContentTranslatingDrawerLayout.TranslationBehavior.FULL
+        // setScrimColor(Color.TRANSPARENT)
+      // }
+    // }
+  // }
 
   private fun onBuildStatusChanged() {
     log.debug(
