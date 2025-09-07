@@ -60,9 +60,6 @@
 
 ## Installation
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.svg"
-    alt="Get it on F-Droid"
-    height="80">](https://f-droid.org/packages/com.itsaky.androidide)
 [<img src="https://github.com/Kunzisoft/Github-badge/raw/main/get-it-on-github.svg"
     alt="Get it on F-Droid"
     height="80">](https://github.com/Mohammed-baqer-null/AndroidIDE-Rv2/releases)
@@ -102,7 +99,9 @@ For translations, visit the [Crowdin project page](https://crowdin.com/project/a
   for [AndroidTreeView](https://github.com/bmelnychuk/AndroidTreeView)
 - [George Fraser](https://github.com/georgewfraser) for
   the [Java Language Server](https://github.com/georgewfraser/java-language-server)
-
+- [Itsaky](https://github.com/itsaky) The original developer
+  of [AndroidIDE](https://github.com/AndroidIDEOfficial/AndroidIDE.git) whose project I forked and now maintain.
+  
 Thanks to all the developers who have contributed to this project.
 
 <p>This project is supported by:</p>
